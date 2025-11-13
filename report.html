@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submitted Queries Report</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Add some basic styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .delete-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Submitted Queries Report</h1>
+        <table id="queryTable">
+            <thead>
+                <tr>
+                    <th>Token No</th>
+                    <th>Customers Name</th>
+                    <th>Customers Email Id</th>
+                    <th>Subject</th>
+                    <th>Date & Time</th>
+                    <th>Feedback</th>
+                    <th>Action</th> <!-- New column for actions -->
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Submitted queries will be populated here -->
+            </tbody>
+        </table>
+        <button id="exportBtn">Export to Excel</button>
+        <button onclick="window.location.href='index.html'">Back to Submission</button>
+    </div>
+
+    <script>
+        function displayQueries() {
+            const queries = JSON.parse(localStorage.getItem('queries')) || [];
+            const queryTableBody = document.getElementById('queryTable').getElementsByTagName('tbody')[0];
+            queryTableBody.innerHTML = ''; // Clear existing rows
+
+            queries.forEach((query, index) => {
+                const row = queryTableBody.insertRow();
+                // Display the serial number based on the current index
+                row.insertCell(0).textContent = index + 1; // Serial number starts from 1
+                row.insertCell(1).textContent = query.institutionName;
+                row.insertCell(2).textContent = query.branchCode;
+                row.insertCell(3).textContent = query.complaint;
+                row.insertCell(4).textContent = query.dateTime;
+                row.insertCell(5).textContent = query.feedback;
+
+                // Create a delete button
+                const deleteCell = row.insertCell(6);
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'delete-btn';
+                deleteButton.onclick = function() {
+                    deleteQuery(index);
+                };
+                deleteCell.appendChild(deleteButton);
+            });
+        }
+
+        function deleteQuery(index) {
+            let queries = JSON.parse(localStorage.getItem('queries')) || [];
+            queries.splice(index, 1);
+            localStorage.setItem('queries', JSON.stringify(queries));
+            displayQueries();
+        }
+
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const queries = JSON.parse(localStorage.getItem('queries')) || [];
+            let xlsContent = 'Token No\tCustomers Name\tCustomers Email Id\tSubject\tDate & Time\tFeedback\n';
+
+            queries.forEach(query => {
+                xlsContent += `${query.token}\t${query.institutionName}\t${query.branchCode}\t${query.complaint}\t${query.dateTime}\t${query.feedback}\n`;
+            });
+
+            const blob = new Blob([xlsContent], { type: 'application/vnd.ms-excel' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "customers_query_report.xls";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        displayQueries();
+    </script>
+</body>
+</html>
